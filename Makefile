@@ -3,7 +3,7 @@ SRC := main.go
 BIN := trans
 BUILD-DIR := build
 
-.PHONY: build run clean release
+.PHONY: build clean release
 
 build: build-linux-amd64 build-darwin-amd64 build-darwin-arm64 build-windows-amd64
 
@@ -21,9 +21,6 @@ build-windows-amd64:
 
 release: build
 	sh ./release.sh
-
-run:
-	go run main.go
 
 clean:
 	rm -r $(BUILD-DIR)
