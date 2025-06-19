@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	std_path "path"
+	"strconv"
 	"trans/common"
 )
 
@@ -65,8 +66,17 @@ func handleDownloadFile(method string, path string) http.HandlerFunc {
 			return
 		}
 
+		stat, err := file.Stat()
+		if err != nil {
+			log.Printf("cannot get file info: %v", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		defer file.Close()
 		w.Header().Add("Content-Type", "application/octet-stream")
+		w.Header().Add("Content-Disposition", "attachment; filename="+filename)
+		w.Header().Add("Content-Length", strconv.Itoa(int(stat.Size())))
 		if _, err = io.Copy(w, file); err != nil {
 			log.Printf("read error: %v", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
