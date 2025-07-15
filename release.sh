@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=$(cat VERSION.txt)
+version=$(git describe --tags 2>/dev/null)
 
 mkdir -p release
 
