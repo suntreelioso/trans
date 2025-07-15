@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	std_path "path"
 	"strconv"
@@ -34,6 +35,9 @@ func listFiles(addr string) common.FileList {
 		common.ExitWithError(errors.Unwrap(err))
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		common.ExitWithError(errors.New("connect to server failed"))
+	}
 	var res common.FileList
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		common.ExitWithError(err)
@@ -61,7 +65,9 @@ func DownloadAllFile(addr string, path string) {
 
 func downloadFile(addr string, path string, filename string) {
 	log.Printf("downloading %s", filename)
-	url := fmt.Sprintf("http://%s%s?filename=%s", addr, common.ApiDownloadUrl, filename)
+	values := url.Values{}
+	values.Add("filename", filename)
+	url := fmt.Sprintf("http://%s%s?%v", addr, common.ApiDownloadUrl, values.Encode())
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Println(errors.Unwrap(err).Error())
@@ -70,7 +76,7 @@ func downloadFile(addr string, path string, filename string) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("download file failed: %v", filename)
+		log.Printf("download file failed(%v): %v", resp.Status, filename)
 		return
 	}
 
@@ -93,7 +99,7 @@ func downloadFile(addr string, path string, filename string) {
 	for received = 0; received < contentLenght; {
 		n, err := resp.Body.Read(buf)
 		if err != nil && err != io.EOF {
-			log.Printf("download file failed: %v %v", filename, err)
+			log.Printf("download file failed: %v %v", filename, err.Error())
 			os.Remove(filepath)
 			break
 		}

@@ -50,12 +50,14 @@ func handleDownloadFile(method string, path string) http.HandlerFunc {
 		filename := r.URL.Query().Get("filename")
 		if filename == "" {
 			w.WriteHeader(http.StatusBadRequest)
+			log.Println("filename is empty")
 			return
 		}
 
 		filepath := std_path.Join(path, filename)
 		if !common.FileIsExist(filepath) {
 			w.WriteHeader(http.StatusNotFound)
+			log.Printf("file not found: %v", filepath)
 			return
 		}
 
